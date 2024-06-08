@@ -3,13 +3,13 @@ from random import randrange
 RANDRANGE=4
 
 def programScad(genName,commands,filenames):
-  f = open("{filename}.scad".format(filename=genName), "w")
+  f = open("{filename}.scad".format(filename=genName), "w+")
   f.write("module export() {\n")
 
-  for command,filename in zip(commands,filenames):
+  for idx,args in enumerate(zip(commands,filenames)):
     f.write("\t")
-    f.write(command)
-    f.write(" //{filename}\n".format(filename=filename))
+    f.write(args[0])
+    f.write(" //{idx}-{filename}\n".format(idx=idx,filename=args[1]))
 
   f.write("}\n")
   f.close()

@@ -1,91 +1,154 @@
-import "./style.css";
 import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const control = document.getElementById("controls");
+document.querySelector(".toggle").onclick = function () {
+  this.classList.toggle("active");
+  control.classList.toggle("active");
+};
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const innerHeight =
+  window.innerHeight -
+  document.getElementById("heading").getBoundingClientRect().height;
+
+renderer.setSize(window.innerWidth, innerHeight);
+renderer.setClearColor("#92A0AD");
+renderer.setPixelRatio(window.devicePixelRatio);
+
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+document.getElementById("play").appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
+
 const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
+  45,
+  window.innerWidth / innerHeight,
+  1,
   1000
 );
-const renderer = new THREE.WebGLRenderer({
-  canvas: document.querySelector("#bg"),
-});
+camera.position.set(20, 20, 10);
 
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.enablePan = true;
+controls.minDistance = 8;
+controls.maxDistance = 50;
+controls.autoRotate = true;
+controls.target = new THREE.Vector3(0, 0, 0);
+controls.update();
 
-function createMesh(vertices, indices) {
-  const geometry = new THREE.BufferGeometry();
+const followLight = new THREE.DirectionalLight("white", 8);
+scene.add(followLight);
 
-  const positionArray = new Float32Array(vertices.flat());
+const spotLight = new THREE.SpotLight("white", 50);
+spotLight.position.set(200, 50, 0);
+scene.add(spotLight);
 
-  const positionAttribute = new THREE.BufferAttribute(positionArray, 3);
-  geometry.setAttribute("position", positionAttribute);
+const dailyShape = "193-CylinderKiloCheese";
+let numGuesses = 0;
 
-  if (indices) {
-    const indexAttribute = new Uint16Array(indices);
-    geometry.setIndex(indexAttribute);
+const loader = new GLTFLoader().setPath("/assets/daily/");
+loader.load(
+  dailyShape + ".gltf",
+  (gltf) => {
+    const mesh = gltf.scene;
+
+    mesh.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+
+    mesh.position.set(0, 0, 0);
+    scene.add(mesh);
+  },
+  (xhr) => {},
+  (error) => {
+    console.error(error);
   }
+);
 
-  geometry.computeVertexNormals();
-
-  const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
-}
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, innerHeight);
+});
 
 function animate() {
   requestAnimationFrame(animate);
-
+  controls.update();
+  followLight.position.copy(camera.position);
   renderer.render(scene, camera);
 }
 
-function minkowskiSum(polyhedron1, polyhedron2) {
-  const vertices = [];
-  const indices = [];
+animate();
 
-  for (const v1 of polyhedron1) {
-    for (const v2 of polyhedron2) {
-      const newVertex = [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]];
-      const existingIndex = vertices.findIndex(
-        (vertex) =>
-          vertex[0] === newVertex[0] &&
-          vertex[1] === newVertex[1] &&
-          vertex[2] === newVertex[2]
-      );
-      if (existingIndex === -1) {
-        vertices.push(newVertex);
-        indices.push(vertices.length - 1);
-      } else {
-        indices.push(existingIndex);
-      }
+function alert(message) {
+  let alerts = document.getElementById("alert-container");
+  if (alerts.childElementCount < 2) {
+    let alertBox = document.createElement("div");
+    alertBox.classList.add("alert-msg", "slide-in");
+
+    let alertTxt = document.createElement("p");
+    alertTxt.innerText = message;
+    alertTxt.classList.add("alert-txt", "slide-in");
+    alertBox.appendChild(alertTxt);
+
+    alerts.insertBefore(alertBox, alerts.childNodes[0]);
+
+    if (alerts.childNodes.length >= 2) {
+      alerts.childNodes[1].classList.add("slide-out");
+      setTimeout(function () {
+        alerts.removeChild(alerts.lastChild);
+      }, 600);
     }
   }
-
-  return [vertices, indices];
 }
 
-const polyhedron1 = [
-  [1, 0, 0],
-  [0, 1, 0],
-  [-1, 0, 0],
-  [0, -1, 0],
-];
-const polyhedron2 = [
-  [0.5, 0.5, 0.5],
-  [-0.5, 0.5, 0.5],
-  [-0.5, -0.5, 0.5],
-  [0.5, -0.5, 0.5],
-];
+function guess() {
+  let correct = true;
+  let numClicked = 0;
+  const shapes = [
+    "Rectangle",
+    "Sphere",
+    "Cylinder",
+    "Pyramid",
+    "Kilo",
+    "Cheese",
+    "Cross",
+    "Dots",
+  ];
+  for (const shape of shapes)
+    if (document.getElementById(shape).checked) numClicked += 1;
+  if (numClicked != 3) {
+    alert("Select three shapes to guess");
+    return;
+  }
 
-const [vertices, indices] = minkowskiSum(polyhedron1, polyhedron2);
+  for (const shape of shapes) {
+    const element = document.getElementById(shape);
+    if (element.checked) {
+      if (dailyShape.includes(shape)) element.classList.add("correct");
+      else {
+        correct = false;
+        element.classList.add("incorrect");
+      }
+    }
+    element.checked = false;
+  }
 
-const mesh = createMesh(vertices, indices);
-scene.add(mesh);
+  numGuesses += 1;
 
-console.log(vertices);
-console.log(indices);
-console.log(mesh);
+  if (correct) alert("Correct!");
+  else if (numGuesses == 2) alert("Incorrect! You lose");
+  else alert("Incorrect! One more guess left");
+}
 
-// animate();
+document.getElementById("guess").onclick = guess;
