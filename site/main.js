@@ -24,6 +24,8 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 document.getElementById("play").appendChild(renderer.domElement);
 
+const date = new Date().toJSON().slice(0, 10);
+
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
@@ -32,7 +34,6 @@ const camera = new THREE.PerspectiveCamera(
   1,
   1000
 );
-camera.position.set(20, 20, 10);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -50,14 +51,22 @@ const spotLight = new THREE.SpotLight("white", 50);
 spotLight.position.set(200, 50, 0);
 scene.add(spotLight);
 
-const dailyShape = "193-CylinderKiloCheese";
-let numGuesses = 0;
+const shapeList = {
+  "2024-06-07": "193-CylinderKiloCheese",
+  "2024-06-08": "193-CylinderKiloCheese",
+};
+const dailyShape = shapeList[date];
+if (!localStorage.getItem(date + "-numGuesses"))
+  localStorage.setItem(date + "-numGuesses", 0);
 
 const loader = new GLTFLoader().setPath("/assets/daily/");
 loader.load(
   dailyShape + ".gltf",
   (gltf) => {
     const mesh = gltf.scene;
+
+    var box = new THREE.Box3().setFromObject(mesh).max;
+    camera.position.set(box.x + 10, box.y + 10, box.z + 10);
 
     mesh.traverse((child) => {
       if (child.isMesh) {
@@ -113,6 +122,11 @@ function alert(message) {
 }
 
 function guess() {
+  if (localStorage.getItem(date + "-numGuesses") >= 2) {
+    alert("You have already played today's Polygonder");
+    return;
+  }
+
   let correct = true;
   let numClicked = 0;
   const shapes = [
@@ -144,11 +158,17 @@ function guess() {
     element.checked = false;
   }
 
-  numGuesses += 1;
+  localStorage.setItem(
+    date + "-numGuesses",
+    Number(localStorage.getItem(date + "-numGuesses")) + 1
+  );
 
-  if (correct) alert("Correct!");
-  else if (numGuesses == 2) alert("Incorrect! You lose");
-  else alert("Incorrect! One more guess left");
+  if (correct) {
+    alert("Correct!");
+    localStorage.setItem(date + "-numGuesses", 3);
+  } else if (localStorage.getItem(date + "-numGuesses") == 2)
+    alert("Incorrect! No guesses left");
+  else alert("Incorrect! One guess left");
 }
 
 document.getElementById("guess").onclick = guess;
