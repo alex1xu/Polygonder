@@ -54,6 +54,10 @@ scene.add(spotLight);
 const shapeList = {
   "2024-06-07": "193-CylinderKiloCheese",
   "2024-06-08": "193-CylinderKiloCheese",
+  "2024-06-09": "3-RectangleSpherePyramid",
+  "2024-06-10": "189-CheeseRectangleCylinder",
+  "2024-06-11": "18-RectangleCylinderKilo",
+  "2024-06-12": "1-PyramidDotsSphere",
 };
 const dailyShape = shapeList[date];
 if (!localStorage.getItem(date + "-numGuesses"))
