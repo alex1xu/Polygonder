@@ -16,7 +16,7 @@ const innerHeight =
   document.getElementById("heading").getBoundingClientRect().height;
 
 renderer.setSize(window.innerWidth, innerHeight);
-renderer.setClearColor("#92A0AD");
+renderer.setClearColor("#fcfaef");
 renderer.setPixelRatio(window.devicePixelRatio);
 
 renderer.shadowMap.enabled = true;
@@ -24,7 +24,64 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 document.getElementById("play").appendChild(renderer.domElement);
 
-const date = new Date().toJSON().slice(0, 10);
+function dropdown() {
+  document.getElementById("archive").classList.toggle("show");
+}
+
+document.getElementById("archivebtn").onclick = dropdown;
+
+window.onclick = function (event) {
+  if (!event.target.matches(".dropbtn")) {
+    let dropdowns = document.getElementsByClassName("dropdown-content");
+    let i;
+    for (i = 0; i < dropdowns.length; i++) {
+      let openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains("show")) {
+        openDropdown.classList.remove("show");
+      }
+    }
+  }
+};
+
+const shapeList = {
+  "2024-06-07": "193-CylinderKiloCheese",
+  "2024-06-08": "193-CylinderKiloCheese",
+  "2024-06-09": "3-RectangleSpherePyramid",
+  "2024-06-10": "189-CheeseRectangleCylinder",
+  "2024-06-11": "18-RectangleCylinderKilo",
+  "2024-06-12": "0-GemCylinderRectangle",
+  "2024-06-13": "1-CheeseCylinderPyramid",
+  "2024-06-14": "6-CrossCylinderSphere",
+  "2024-06-15": "10-RectangleCrossCheese",
+};
+
+function getDate(str = null) {
+  let date = new Date();
+  if (str) date = new Date(str);
+  let userTimezoneOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() + userTimezoneOffset);
+}
+
+let date = getDate().toJSON().slice(0, 10);
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get("date"))
+  date = getDate(urlParams.get("date")).toJSON().slice(0, 10);
+
+let now = getDate();
+for (let d = getDate("2024-06-07"); d <= now; d.setDate(d.getDate() + 1)) {
+  let dstring = d.toJSON().slice(0, 10);
+  let ref = document.createElement("a");
+  ref.href =
+    window.location.protocol +
+    "//" +
+    window.location.host +
+    window.location.pathname +
+    "?" +
+    "date=" +
+    dstring;
+  ref.innerText = dstring;
+  document.getElementById("archive").appendChild(ref);
+}
 
 const scene = new THREE.Scene();
 
@@ -44,33 +101,41 @@ controls.autoRotate = true;
 controls.target = new THREE.Vector3(0, 0, 0);
 controls.update();
 
-const followLight = new THREE.DirectionalLight("white", 8);
+const followLight = new THREE.DirectionalLight("#efcf99", 6);
 scene.add(followLight);
 
-const spotLight = new THREE.SpotLight("white", 50);
-spotLight.position.set(200, 50, 0);
-scene.add(spotLight);
+const spotLight1 = new THREE.SpotLight("white", 18);
+const spotLight2 = new THREE.SpotLight("white", 18);
+const spotLight3 = new THREE.SpotLight("white", 18);
+const spotLight4 = new THREE.SpotLight("white", 18);
+const spotLight5 = new THREE.SpotLight("white", 18);
+const spotLight6 = new THREE.SpotLight("white", 18);
+scene.add(spotLight1);
+scene.add(spotLight2);
+scene.add(spotLight3);
+scene.add(spotLight4);
+scene.add(spotLight5);
+scene.add(spotLight6);
 
-const shapeList = {
-  "2024-06-07": "193-CylinderKiloCheese",
-  "2024-06-08": "193-CylinderKiloCheese",
-  "2024-06-09": "3-RectangleSpherePyramid",
-  "2024-06-10": "189-CheeseRectangleCylinder",
-  "2024-06-11": "18-RectangleCylinderKilo",
-  "2024-06-12": "1-PyramidDotsSphere",
-};
 const dailyShape = shapeList[date];
 if (!localStorage.getItem(date + "-numGuesses"))
   localStorage.setItem(date + "-numGuesses", 0);
 
 const loader = new GLTFLoader().setPath("/assets/daily/");
 loader.load(
-  dailyShape + ".gltf",
+  "/" + dailyShape + ".gltf",
   (gltf) => {
     const mesh = gltf.scene;
 
-    var box = new THREE.Box3().setFromObject(mesh).max;
-    camera.position.set(box.x + 10, box.y + 10, box.z + 10);
+    var box1 = new THREE.Box3().setFromObject(mesh).max;
+    var box2 = new THREE.Box3().setFromObject(mesh).min;
+    camera.position.set(box1.x + 10, box1.y + 10, box1.z + 10);
+    spotLight1.position.set(box1.x + 10, box1.y, box1.z);
+    spotLight2.position.set(box1.x, box1.y + 10, box1.z);
+    spotLight3.position.set(box1.x, box1.y, box1.z + 10);
+    spotLight4.position.set(box2.x - 10, box2.y, box2.z);
+    spotLight5.position.set(box2.x, box2.y - 10, box2.z);
+    spotLight6.position.set(box2.x, box2.y, box2.z - 10);
 
     mesh.traverse((child) => {
       if (child.isMesh) {
@@ -127,7 +192,7 @@ function alert(message) {
 
 function guess() {
   if (localStorage.getItem(date + "-numGuesses") >= 2) {
-    alert("You have already played today's Polygonder");
+    alert("You have already played this Polygonder");
     return;
   }
 
@@ -141,7 +206,7 @@ function guess() {
     "Kilo",
     "Cheese",
     "Cross",
-    "Dots",
+    "Gem",
   ];
   for (const shape of shapes)
     if (document.getElementById(shape).checked) numClicked += 1;

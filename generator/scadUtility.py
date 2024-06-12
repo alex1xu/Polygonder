@@ -26,58 +26,30 @@ def combineShapes(commands):
     if command is getRect: filename+="Rectangle"
     if command is getCross: filename+="Cross"
     if command is getSphere: filename+="Sphere"
-    if command is getDots: filename+="Dots"
+    if command is getGem: filename+="Gem"
   
   return (filename,"minkowski() {{ {shapes} }}".format(shapes=" ".join(shapes)))
 
 def getCheese(x=randrange(RANDRANGE)+1.5):
-  return "cylinder({x},{x},{x},$fn=3,center=true);".format(x=x)
+  return "rotate([{r1},{r2},{r3}]) cylinder({x},{x},{x},$fn=3,center=true);".format(x=x,r1=randrange(4)*45,r2=randrange(4)*45,r3=randrange(4)*45)
 
 def getPyramid(x=randrange(RANDRANGE)+2):
-  return "cylinder({x},{x},0,$fn=4,center=true);".format(x=x)
+  return "rotate([{r1},{r2},{r3}]) cylinder({x},{x},0,$fn=4,center=true);".format(x=x,r1=randrange(4)*45,r2=randrange(4)*45,r3=randrange(4)*45)
 
 def getKilo(x=randrange(RANDRANGE)+2):
-  return "cylinder({x},{x},1,$fn=4,center=true);".format(x=x)
+  return "rotate([{r1},{r2},{r3}]) cylinder({x},{x},1,$fn=4,center=true);".format(x=x,r1=randrange(4)*45,r2=randrange(4)*45,r3=randrange(4)*45)
 
-def getCylinder(x=randrange(RANDRANGE)+2,type=randrange(RANDRANGE)):
-  if type==0:
-    return "cylinder(h={x},r1=1,r2=1,$fn=40,center=true);".format(x=x)
-  if type==1:
-    return "rotate([0,90,0]) cylinder(h={x},r1=1,r2=1,$fn=40,center=true);".format(x=x)
-  if type==2:
-    return "rotate([90,0,0]) cylinder(h={x},r1=1,r2=1,$fn=40,center=true);".format(x=x)
-  if type==3:
-    return "rotate([45,45,0]) cylinder(h={x},r1=1,r2=1,$fn=40,center=true);".format(x=x)
+def getCylinder(x=randrange(RANDRANGE)+2):
+  return "rotate([{r1},{r2},{r3}]) cylinder(h={x},r1=1,r2=1,$fn=40,center=true);".format(x=x,r1=randrange(4)*45,r2=randrange(4)*45,r3=randrange(4)*45)
   
-def getRect(x=randrange(RANDRANGE)+2,type=randrange(RANDRANGE)):
-  if type==0:
-    return "cube([1,1,{x}],center=true);".format(x=x)
-  if type==1:
-    return "cube([{x},1,1],center=true);".format(x=x)
-  if type==2:
-      return "cube([1,{x},1],center=true);".format(x=x)
-  if type==3:
-      return "rotate([45,45,0]) cube([1,1,{x}],center=true);".format(x=x)
+def getRect(x=randrange(RANDRANGE)+2):
+  return "rotate([{r1},{r2},{r3}]) cube([1,1,{x}],center=true);".format(x=x,r1=randrange(4)*45,r2=randrange(4)*45,r3=randrange(4)*45)
 
-def getCross(x=randrange(RANDRANGE)+2,type=randrange(RANDRANGE)):
-  if type==0:
-    return "union() {{ rotate([0,45,0]) {{ cube([{x},1,1],center=true); }} rotate([0,-45,0]) {{ cube([{x},1,1],center=true); }} }}".format(x=x)
-  if type==1:
-    return "union() {{ rotate([0,0,45]) {{ cube([{x},1,1],center=true); }} rotate([0,0,-45]) {{ cube([{x},1,1],center=true); }} }}".format(x=x)
-  if type==2:
-    return "union() {{ cube([{x},1,1],center=true); rotate([0,90,0]) {{ cube([{x},1,1],center=true); }} }}".format(x=x)
-  if type==3:
-    return "union() {{ cube([{x},1,1],center=true); rotate([0,0,90]) {{ cube([{x},1,1],center=true); }} }}".format(x=x)
+def getCross(x=randrange(RANDRANGE)+2):
+  return "rotate([{r1},{r2},{r3}]) union() {{ cube([{x},1,1],center=true); rotate([0,90,0]) {{ cube([{x},1,1],center=true); }}; }}".format(x=x,r1=randrange(4)*45,r2=randrange(4)*45,r3=randrange(4)*45)
 
-def getSphere(x=randrange(3)+1):
+def getSphere(x=randrange(RANDRANGE)+1):
   return "sphere(r={x},$fn=40);".format(x=x)
 
-def getDots(x=randrange(RANDRANGE)+0.5,type=randrange(RANDRANGE)):
-  if type==0:
-    return "union() {{ translate([-{x},-{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([{x},-{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([-{x},{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([{x},{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} }}".format(x=x)
-  if type==1:
-    return "rotate([0,0,45]) {{ union() {{ translate([-{x},-{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([{x},-{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([-{x},{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([{x},{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} }} }}".format(x=x)
-  if type==2:
-    return "rotate([90,0,0]) {{ union() {{ translate([-{x},-{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([{x},-{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([-{x},{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([{x},{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} }} }}".format(x=x)
-  if type==3:
-    return "rotate([90,45,0]) {{ union() {{ translate([-{x},-{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([{x},-{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([-{x},{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} translate([{x},{x},0]) {{ cube([0.5,0.5,0.5],center=true); }} }} }}".format(x=x)
+def getGem(x=randrange(RANDRANGE)+1):
+  return "rotate([{r1},{r2},{r3}]) union() {{ cylinder(h={x}, r1={x}, r2=0, $fn=4); rotate([0,0,45]) cylinder(h={x}, r1={x}, r2=0, $fn=4); mirror([0,0,1]) {{ cylinder(h={x}, r1={x}, r2=0, $fn=4); rotate([0,0,45]) cylinder(h={x}, r1={x}, r2=0, $fn=4); }} }};".format(x=x,r1=randrange(4)*45,r2=randrange(4)*45,r3=randrange(4)*45)
